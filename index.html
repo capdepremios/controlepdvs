@@ -149,7 +149,8 @@
         <input type="number" id="dev-total" placeholder="0" readonly>
 
         <button onclick="salvarAcerto()" id="btn-salvar-acerto" style="margin-top: 15px;">Registrar Acerto</button>
-        <button class="btn-cinza" onclick="voltarParaPrincipal()">Cancelar</button>
+        <button class="btn-azul hidden" id="btn-novo-acerto" onclick="prepararNovoAcerto()" style="margin-top: 15px;">Fazer Novo Acerto</button>
+        <button class="btn-cinza" onclick="voltarParaPrincipal()">Voltar ao Menu</button>
         <p id="msg-acerto" style="text-align: center; font-weight: bold;"></p>
     </div>
 
@@ -203,8 +204,10 @@
         function mostrarTelaPrincipal(nome, rota) {
             ocultarTodasAsTelas();
             document.getElementById("tela-principal").classList.remove("hidden");
-            if(nome) document.getElementById("boas-vindas").innerText = "Bem-vindo, " + nome;
-            if(rota) document.getElementById("rota-atual").innerText = rota;
+            const nomeU = nome || localStorage.getItem("motoboyNome");
+            const rotaU = rota || localStorage.getItem("motoboyRota");
+            if(nomeU) document.getElementById("boas-vindas").innerText = "Bem-vindo, " + nomeU;
+            if(rotaU) document.getElementById("rota-atual").innerText = rotaU;
         }
 
         function voltarParaPrincipal() { mostrarTelaPrincipal(); }
@@ -242,6 +245,13 @@
             document.getElementById("comissao").value = "";
             document.getElementById("a-receber").value = "";
             document.getElementById("dev-total").value = 0;
+        }
+
+        function prepararNovoAcerto() {
+            limparFormularioAcerto();
+            document.getElementById("msg-acerto").innerText = "";
+            document.getElementById("btn-salvar-acerto").classList.remove("hidden");
+            document.getElementById("btn-novo-acerto").classList.add("hidden");
         }
 
         function carregarPDVs() {
@@ -378,6 +388,7 @@
 
         function salvarAcerto() {
             const btn = document.getElementById("btn-salvar-acerto");
+            const btnNovo = document.getElementById("btn-novo-acerto");
             const msg = document.getElementById("msg-acerto");
             
             const pdv = document.getElementById("pdv-selecionado").value;
@@ -415,12 +426,12 @@
                 if (dados.status === "sucesso") {
                     msg.innerText = "Acerto registrado com sucesso!";
                     msg.style.color = "green";
-                    setTimeout(() => {
-                        limparFormularioAcerto();
-                        btn.innerText = "Registrar Acerto";
-                        btn.disabled = false;
-                        voltarParaPrincipal();
-                    }, 2000);
+                    
+                    // Esconde o botão salvar e exibe o botão de "Fazer Novo Acerto" na mesma tela
+                    btn.classList.add("hidden");
+                    btn.innerText = "Registrar Acerto";
+                    btn.disabled = false;
+                    btnNovo.classList.remove("hidden");
                 } else {
                     msg.innerText = "Erro: " + (dados.mensagem || "Desconhecido");
                     msg.style.color = "red";
