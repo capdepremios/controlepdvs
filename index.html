@@ -154,6 +154,75 @@
         <p id="msg-acerto" style="text-align: center; font-weight: bold;"></p>
     </div>
 
+    <!-- 5. TELA DE CADASTRAR NOVO PDV -->
+    <div id="tela-cadastro-pdv" class="container hidden">
+        <h2>Cadastrar Novo PDV</h2>
+        
+        <label>Nome do PDV:</label>
+        <input type="text" id="cad-nome-pdv" placeholder="Ex: Mercearia do João">
+
+        <label>Responsável:</label>
+        <input type="text" id="cad-responsavel" placeholder="Nome do responsável">
+
+        <label>Telefone / WhatsApp:</label>
+        <input type="text" id="cad-telefone" placeholder="(00) 00000-0000">
+
+        <label>Endereço:</label>
+        <input type="text" id="cad-endereco" placeholder="Rua, Número">
+
+        <label>Bairro:</label>
+        <input type="text" id="cad-bairro" placeholder="Nome do Bairro">
+
+        <label>Cidade:</label>
+        <input type="text" id="cad-cidade" placeholder="Cidade">
+
+        <label>Rota:</label>
+        <input type="text" id="cad-rota" placeholder="Rota correspondente">
+
+        <label>Link de Localização (Maps):</label>
+        <input type="text" id="cad-localizacao" placeholder="Cole o link do Google Maps">
+
+        <hr>
+        <h3>Configuração de Produtos (Até 3 Cartelas)</h3>
+
+        <!-- Produto 1 -->
+        <label>Produto 1 - Valor Unitário (R$):</label>
+        <input type="number" id="cad-valor1" step="0.01" placeholder="0.00">
+        <label>Produto 1 - Quantidade Distribuída:</label>
+        <input type="number" id="cad-quant1" placeholder="0">
+        <label>Produto 1 - Cartela Inicial (Opcional):</label>
+        <input type="number" id="cad-cart-inicial1" placeholder="0">
+
+        <!-- Produto 2 -->
+        <label>Produto 2 - Valor Unitário (R$):</label>
+        <input type="number" id="cad-valor2" step="0.01" placeholder="0.00">
+        <label>Produto 2 - Quantidade Distribuída:</label>
+        <input type="number" id="cad-quant2" placeholder="0">
+        <label>Produto 2 - Cartela Inicial (Opcional):</label>
+        <input type="number" id="cad-cart-inicial2" placeholder="0">
+
+        <!-- Produto 3 -->
+        <label>Produto 3 - Valor Unitário (R$):</label>
+        <input type="number" id="cad-valor3" step="0.01" placeholder="0.00">
+        <label>Produto 3 - Quantidade Distribuída:</label>
+        <input type="number" id="cad-quant3" placeholder="0">
+        <label>Produto 3 - Cartela Inicial (Opcional):</label>
+        <input type="number" id="cad-cart-inicial3" placeholder="0">
+
+        <label>Dia de Recolha:</label>
+        <input type="text" id="cad-dia-recolha" placeholder="Ex: Segunda-feira">
+
+        <label>Horário de Recolha:</label>
+        <input type="text" id="cad-hora-recolha" placeholder="Ex: 14:00">
+
+        <label>Observações:</label>
+        <input type="text" id="cad-obs" placeholder="Observações gerais">
+
+        <button onclick="salvarNovoPDV()" id="btn-salvar-pdv" style="margin-top: 15px;">Salvar Novo PDV</button>
+        <button class="btn-cinza" onclick="abrirMenuPontos()">Voltar</button>
+        <p id="msg-cad-pdv" style="text-align: center; font-weight: bold;"></p>
+    </div>
+
     <script>
         const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzsuU1NC3MlEHl08b1-YyuLbxAj418zRtEQsHZe_YBWAWv3FV8BT7YUw1b9jVeiveBU7g/exec";
         
@@ -199,6 +268,7 @@
             document.getElementById("tela-principal").classList.add("hidden");
             document.getElementById("tela-meus-pontos").classList.add("hidden");
             document.getElementById("tela-acerto").classList.add("hidden");
+            document.getElementById("tela-cadastro-pdv").classList.add("hidden");
         }
 
         function mostrarTelaPrincipal(nome, rota) {
@@ -290,12 +360,10 @@
             const pdvEncontrado = listaGlobalPDVs.find(p => p.nome === nomePdv);
 
             if (pdvEncontrado) {
-                // Quantidades
                 document.getElementById("dist1").value = pdvEncontrado.quant1;
                 document.getElementById("dist2").value = pdvEncontrado.quant2;
                 document.getElementById("dist3").value = pdvEncontrado.quant3;
 
-                // Valores unitários nos títulos das cartelas
                 setarValorUnitario(1, pdvEncontrado.valor1);
                 setarValorUnitario(2, pdvEncontrado.valor2);
                 setarValorUnitario(3, pdvEncontrado.valor3);
@@ -427,7 +495,6 @@
                     msg.innerText = "Acerto registrado com sucesso!";
                     msg.style.color = "green";
                     
-                    // Esconde o botão salvar e exibe o botão de "Fazer Novo Acerto" na mesma tela
                     btn.classList.add("hidden");
                     btn.innerText = "Registrar Acerto";
                     btn.disabled = false;
@@ -448,7 +515,91 @@
             });
         }
 
-        function abrirCadastrarPDV() { alert("Em breve: Cadastrar novo PDV"); }
+        // ==========================================
+        // FLUXO DE CADASTRAR NOVO PDV
+        // ==========================================
+        function abrirCadastrarPDV() {
+            ocultarTodasAsTelas();
+            document.getElementById("tela-cadastro-pdv").classList.remove("hidden");
+            document.getElementById("msg-cad-pdv").innerText = "";
+            
+            // Pré-preenche a rota com a rota salva do motoboy se houver
+            const rotaSalva = localStorage.getItem("motoboyRota");
+            if(rotaSalva) {
+                document.getElementById("cad-rota").value = rotaSalva;
+            }
+        }
+
+        function salvarNovoPDV() {
+            const btn = document.getElementById("btn-salvar-pdv");
+            const msg = document.getElementById("msg-cad-pdv");
+
+            const nomePdv = document.getElementById("cad-nome-pdv").value;
+            if (!nomePdv) {
+                msg.innerText = "O nome do PDV é obrigatório.";
+                msg.style.color = "red";
+                return;
+            }
+
+            btn.innerText = "Cadastrando...";
+            btn.disabled = true;
+
+            const dadosPDV = {
+                action: "cadastrar_pdv",
+                nomePdv: nomePdv,
+                responsavel: document.getElementById("cad-responsavel").value,
+                telefone: document.getElementById("cad-telefone").value,
+                endereco: document.getElementById("cad-endereco").value,
+                bairro: document.getElementById("cad-bairro").value,
+                cidade: document.getElementById("cad-cidade").value,
+                rota: document.getElementById("cad-rota").value,
+                localizacao: document.getElementById("cad-localizacao").value,
+                valor1: document.getElementById("cad-valor1").value,
+                quant1: document.getElementById("cad-quant1").value,
+                cartInicial1: document.getElementById("cad-cart-inicial1").value,
+                valor2: document.getElementById("cad-valor2").value,
+                quant2: document.getElementById("cad-quant2").value,
+                cartInicial2: document.getElementById("cad-cart-inicial2").value,
+                valor3: document.getElementById("cad-valor3").value,
+                quant3: document.getElementById("cad-quant3").value,
+                cartInicial3: document.getElementById("cad-cart-inicial3").value,
+                diaRecolha: document.getElementById("cad-dia-recolha").value,
+                horaRecolha: document.getElementById("cad-hora-recolha").value,
+                obs: document.getElementById("cad-obs").value
+            };
+
+            fetch(APPS_SCRIPT_URL, {
+                method: "POST",
+                body: JSON.stringify(dadosPDV)
+            })
+            .then(res => res.json())
+            .then(dados => {
+                if (dados.status === "sucesso") {
+                    msg.innerText = "PDV cadastrado com sucesso! ID gerado: " + dados.id;
+                    msg.style.color = "green";
+                    btn.innerText = "Salvar Novo PDV";
+                    btn.disabled = false;
+                    
+                    // Opcional: Limpar campos após sucesso
+                    setTimeout(() => {
+                        abrirMenuPontos();
+                    }, 2000);
+                } else {
+                    msg.innerText = "Erro: " + (dados.mensagem || "Desconhecido");
+                    msg.style.color = "red";
+                    btn.innerText = "Salvar Novo PDV";
+                    btn.disabled = false;
+                }
+            })
+            .catch(erro => {
+                console.error("Erro detalhado:", erro);
+                msg.innerText = "Erro ao enviar cadastro.";
+                msg.style.color = "red";
+                btn.innerText = "Salvar Novo PDV";
+                btn.disabled = false;
+            });
+        }
+
         function abrirConsultarPDV() { alert("Em breve: Consultar dados de PDV"); }
         function abrirAbastecerPDV() { alert("Em breve: Abastecer PDV (Registro de estoque)"); }
     </script>
