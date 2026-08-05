@@ -615,15 +615,37 @@
             btn.innerText = "Cadastrando...";
             btn.disabled = true;
 
-            let fotoBase64 = "";
+            let fotoUrl = "";
             const inputFoto = document.getElementById("cad-foto").files[0];
+
             if (inputFoto) {
                 try {
-                    fotoBase64 = await converterFotoParaBase64(inputFoto);
+                    msg.innerText = "Enviando foto para o Drive...";
+                    let fotoBase64 = await converterFotoParaBase64(inputFoto);
+                    
+                    // Envia primeiro a imagem para o Drive usando o código gerado temporariamente ou o nome do PDV
+                    // Como o ID definitivo da planilha ainda não existe antes do cadastro, enviamos com um código provisório ou o próprio nome do PDV
+                    const codigoProvisorio = "PDV";
+                    
+                    const resFoto = await fetch(APPS_SCRIPT_URL, {
+                        method: "POST",
+                        body: JSON.stringify({
+                            action: "salvar_imagem",
+                            base64Data: fotoBase64,
+                            codigo: codigoProvisorio,
+                            nomePdv: nomePdv
+                        })
+                    });
+                    const dadosFoto = await resFoto.json();
+                    if (dadosFoto.status === "sucesso") {
+                        fotoUrl = dadosFoto.url;
+                    }
                 } catch (err) {
-                    console.error("Erro ao converter foto", err);
+                    console.error("Erro ao enviar foto para o Drive", err);
                 }
             }
+
+            msg.innerText = "Salvando dados do PDV...";
 
             const dadosPDV = {
                 action: "cadastrar_pdv",
@@ -635,7 +657,7 @@
                 cidade: document.getElementById("cad-cidade").value,
                 rota: document.getElementById("cad-rota").value,
                 localizacao: document.getElementById("cad-localizacao").value,
-                foto: fotoBase64,
+                foto: fotoUrl, // URL pública da imagem salva no Google Drive
                 valor1: document.getElementById("cad-valor1").value,
                 quant1: document.getElementById("cad-quant1").value,
                 cartInicial1: document.getElementById("cad-cart-inicial1").value,
