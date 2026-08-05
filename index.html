@@ -25,12 +25,10 @@
 
         .aviso-limite { font-size: 11px; color: #dc3545; margin: 0 0 8px 0; min-height: 14px; font-weight: bold; }
         
-        /* Estilo para o título do valor da cartela no lugar de "Cartela X" */
         .label-titulo-cartela { font-size: 14px; font-weight: bold; color: #333; margin-top: 16px; margin-bottom: 4px; display: block; }
 
         label { font-size: 14px; font-weight: bold; color: #333; display: block; margin-top: 12px; }
         
-        /* Campos automáticos ou bloqueados */
         input[readonly] { background-color: #e9ecef; color: #495057; font-weight: bold; border: 1px solid #ccc; }
         
         hr { border: 0; border-top: 1px solid #ddd; margin: 20px 0 10px 0; }
@@ -174,46 +172,74 @@
         <input type="text" id="cad-bairro" placeholder="Nome do Bairro">
 
         <label>Cidade:</label>
-        <input type="text" id="cad-cidade" placeholder="Cidade">
+        <select id="cad-cidade" onchange="atualizarRotasPorCidade()">
+            <option value="">Selecione a Cidade...</option>
+            <option value="Planaltina-GO">Planaltina-GO</option>
+            <option value="Planaltina-DF">Planaltina-DF</option>
+            <option value="Formosa-GO">Formosa-GO</option>
+        </select>
 
         <label>Rota:</label>
-        <input type="text" id="cad-rota" placeholder="Rota correspondente">
+        <select id="cad-rota">
+            <option value="">Selecione primeiro a cidade...</option>
+        </select>
 
         <label>Link de Localização (Maps):</label>
         <input type="text" id="cad-localizacao" placeholder="Cole o link do Google Maps">
 
+        <label>Foto da Fachada:</label>
+        <input type="file" id="cad-foto" accept="image/*" capture="environment">
+
         <hr>
         <h3>Configuração de Produtos (Até 3 Cartelas)</h3>
 
-        <!-- Produto 1 -->
-        <label>Produto 1 - Valor Unitário (R$):</label>
+        <!-- Cartela 1 -->
+        <h4 style="margin: 10px 0 0 0; color: #007bff;">Cartela 1</h4>
+        <label>Valor Unitário (R$):</label>
         <input type="number" id="cad-valor1" step="0.01" placeholder="0.00">
-        <label>Produto 1 - Quantidade Distribuída:</label>
-        <input type="number" id="cad-quant1" placeholder="0">
-        <label>Produto 1 - Cartela Inicial (Opcional):</label>
-        <input type="number" id="cad-cart-inicial1" placeholder="0">
+        <label>Quantidade Distribuída:</label>
+        <input type="number" id="cad-quant1" placeholder="0" oninput="calcularCartelaFinal(1)">
+        <label>Cartela Inicial:</label>
+        <input type="number" id="cad-cart-inicial1" placeholder="0" oninput="calcularCartelaFinal(1)">
+        <label>Cartela Final (Automático):</label>
+        <input type="number" id="cad-cart-final1" readonly value="0">
 
-        <!-- Produto 2 -->
-        <label>Produto 2 - Valor Unitário (R$):</label>
+        <!-- Cartela 2 -->
+        <h4 style="margin: 15px 0 0 0; color: #007bff;">Cartela 2</h4>
+        <label>Valor Unitário (R$):</label>
         <input type="number" id="cad-valor2" step="0.01" placeholder="0.00">
-        <label>Produto 2 - Quantidade Distribuída:</label>
-        <input type="number" id="cad-quant2" placeholder="0">
-        <label>Produto 2 - Cartela Inicial (Opcional):</label>
-        <input type="number" id="cad-cart-inicial2" placeholder="0">
+        <label>Quantidade Distribuída:</label>
+        <input type="number" id="cad-quant2" placeholder="0" oninput="calcularCartelaFinal(2)">
+        <label>Cartela Inicial:</label>
+        <input type="number" id="cad-cart-inicial2" placeholder="0" oninput="calcularCartelaFinal(2)">
+        <label>Cartela Final (Automático):</label>
+        <input type="number" id="cad-cart-final2" readonly value="0">
 
-        <!-- Produto 3 -->
-        <label>Produto 3 - Valor Unitário (R$):</label>
+        <!-- Cartela 3 -->
+        <h4 style="margin: 15px 0 0 0; color: #007bff;">Cartela 3</h4>
+        <label>Valor Unitário (R$):</label>
         <input type="number" id="cad-valor3" step="0.01" placeholder="0.00">
-        <label>Produto 3 - Quantidade Distribuída:</label>
-        <input type="number" id="cad-quant3" placeholder="0">
-        <label>Produto 3 - Cartela Inicial (Opcional):</label>
-        <input type="number" id="cad-cart-inicial3" placeholder="0">
+        <label>Quantidade Distribuída:</label>
+        <input type="number" id="cad-quant3" placeholder="0" oninput="calcularCartelaFinal(3)">
+        <label>Cartela Inicial:</label>
+        <input type="number" id="cad-cart-inicial3" placeholder="0" oninput="calcularCartelaFinal(3)">
+        <label>Cartela Final (Automático):</label>
+        <input type="number" id="cad-cart-final3" readonly value="0">
 
+        <hr>
         <label>Dia de Recolha:</label>
-        <input type="text" id="cad-dia-recolha" placeholder="Ex: Segunda-feira">
+        <select id="cad-dia-recolha">
+            <option value="">Selecione o dia...</option>
+            <option value="Quinta">Quinta</option>
+            <option value="Sexta">Sexta</option>
+            <option value="Sábado">Sábado</option>
+        </select>
 
         <label>Horário de Recolha:</label>
-        <input type="text" id="cad-hora-recolha" placeholder="Ex: 14:00">
+        <select id="cad-hora-recolha">
+            <option value="">Selecione o horário...</option>
+            <!-- Preenchido via script (08:00 às 23:00) -->
+        </select>
 
         <label>Observações:</label>
         <input type="text" id="cad-obs" placeholder="Observações gerais">
@@ -228,13 +254,55 @@
         
         let listaGlobalPDVs = [];
 
+        // Mapeamento de rotas por cidade (ajuste os nomes das rotas conforme necessário)
+        const rotasPorCidade = {
+            "Planaltina-GO": ["Rota Centro GO", "Rota Leste GO", "Rota Norte GO"],
+            "Planaltina-DF": ["Rota Vila Burnier", "Rota Arapoanga", "Rota Estância"],
+            "Formosa-GO": ["Rota Centro Formosa", "Rota Formosinha"]
+        };
+
         window.onload = function() {
             const motoboySalvo = localStorage.getItem("motoboyNome");
             const rotaSalva = localStorage.getItem("motoboyRota");
             if (motoboySalvo && rotaSalva) {
                 mostrarTelaPrincipal(motoboySalvo, rotaSalva);
             }
+            popularHorariosRecolha();
         };
+
+        function popularHorariosRecolha() {
+            const selectHora = document.getElementById("cad-hora-recolha");
+            for (let h = 8; h <= 23; h++) {
+                let horaStr = h < 10 ? "0" + h + ":00" : h + ":00";
+                let option = document.createElement("option");
+                option.value = horaStr;
+                option.text = horaStr;
+                selectHora.appendChild(option);
+            }
+        }
+
+        function atualizarRotasPorCidade() {
+            const cidadeSelect = document.getElementById("cad-cidade").value;
+            const rotaSelect = document.getElementById("cad-rota");
+            
+            rotaSelect.innerHTML = '<option value="">Selecione a rota...</option>';
+            
+            if (cidadeSelect && rotasPorCidade[cidadeSelect]) {
+                rotasPorCidade[cidadeSelect].forEach(rota => {
+                    let opt = document.createElement("option");
+                    opt.value = rota;
+                    opt.text = rota;
+                    rotaSelect.appendChild(opt);
+                });
+            }
+        }
+
+        function calcularCartelaFinal(num) {
+            const quant = Number(document.getElementById(`cad-quant${num}`).value) || 0;
+            const inicial = Number(document.getElementById(`cad-cart-inicial${num}`).value) || 0;
+            const final = inicial > 0 ? inicial + quant : 0;
+            document.getElementById(`cad-cart-final${num}`).value = final;
+        }
 
         function fazerLogin() {
             const login = document.getElementById("login").value;
@@ -522,15 +590,18 @@
             ocultarTodasAsTelas();
             document.getElementById("tela-cadastro-pdv").classList.remove("hidden");
             document.getElementById("msg-cad-pdv").innerText = "";
-            
-            // Pré-preenche a rota com a rota salva do motoboy se houver
-            const rotaSalva = localStorage.getItem("motoboyRota");
-            if(rotaSalva) {
-                document.getElementById("cad-rota").value = rotaSalva;
-            }
         }
 
-        function salvarNovoPDV() {
+        function converterFotoParaBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = error => reject(error);
+            });
+        }
+
+        async function salvarNovoPDV() {
             const btn = document.getElementById("btn-salvar-pdv");
             const msg = document.getElementById("msg-cad-pdv");
 
@@ -544,6 +615,16 @@
             btn.innerText = "Cadastrando...";
             btn.disabled = true;
 
+            let fotoBase64 = "";
+            const inputFoto = document.getElementById("cad-foto").files[0];
+            if (inputFoto) {
+                try {
+                    fotoBase64 = await converterFotoParaBase64(inputFoto);
+                } catch (err) {
+                    console.error("Erro ao converter foto", err);
+                }
+            }
+
             const dadosPDV = {
                 action: "cadastrar_pdv",
                 nomePdv: nomePdv,
@@ -554,6 +635,7 @@
                 cidade: document.getElementById("cad-cidade").value,
                 rota: document.getElementById("cad-rota").value,
                 localizacao: document.getElementById("cad-localizacao").value,
+                foto: fotoBase64,
                 valor1: document.getElementById("cad-valor1").value,
                 quant1: document.getElementById("cad-quant1").value,
                 cartInicial1: document.getElementById("cad-cart-inicial1").value,
@@ -580,7 +662,6 @@
                     btn.innerText = "Salvar Novo PDV";
                     btn.disabled = false;
                     
-                    // Opcional: Limpar campos após sucesso
                     setTimeout(() => {
                         abrirMenuPontos();
                     }, 2000);
