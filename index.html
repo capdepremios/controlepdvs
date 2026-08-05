@@ -80,7 +80,7 @@
         </select>
 
         <!-- CARTELA 1 -->
-        <span class="label-titulo-cartela" id="label-titulo-cartela1">Cartela de R$ 0,00</span>
+        <span class="label-titulo-cartela" id="label-titulo-cartela1">Valor da cartela: R$ 0,00</span>
         <div class="grid-cartela">
             <div class="col-cartela">
                 <label>Distribuído</label>
@@ -98,7 +98,7 @@
         <p id="aviso1" class="aviso-limite"></p>
 
         <!-- CARTELA 2 -->
-        <span class="label-titulo-cartela" id="label-titulo-cartela2">Cartela de R$ 0,00</span>
+        <span class="label-titulo-cartela" id="label-titulo-cartela2">Valor da cartela: R$ 0,00</span>
         <div class="grid-cartela">
             <div class="col-cartela">
                 <label>Distribuído</label>
@@ -116,7 +116,7 @@
         <p id="aviso2" class="aviso-limite"></p>
 
         <!-- CARTELA 3 -->
-        <span class="label-titulo-cartela" id="label-titulo-cartela3">Cartela de R$ 0,00</span>
+        <span class="label-titulo-cartela" id="label-titulo-cartela3">Valor da cartela: R$ 0,00</span>
         <div class="grid-cartela">
             <div class="col-cartela">
                 <label>Distribuído</label>
@@ -154,7 +154,7 @@
     </div>
 
     <script>
-        const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxL4AdsHa8KJPH9g5Jt4e5bCeKbqyoLXQmT5Nz5eaenrCIA9KK2_7vVSRajTAEuHPiIsQ/exec";
+        const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwlzSmupy4r1lwuvseeyiDBhqxd8-99XPVVQybRGGfgqxA3J1m1tD7gfUisxbZj4xWEsw/exec";
         
         let listaGlobalPDVs = [];
 
@@ -234,7 +234,7 @@
                 document.getElementById(`aviso${i}`).innerText = "";
                 
                 const spanTitulo = document.getElementById(`label-titulo-cartela${i}`);
-                spanTitulo.innerText = "Cartela de R$ 0,00";
+                spanTitulo.innerText = "Valor da cartela: R$ 0,00";
                 spanTitulo.dataset.valor = 0;
             }
 
@@ -246,7 +246,7 @@
 
         function carregarPDVs() {
             const rota = localStorage.getItem("motoboyRota");
-            document.getElementById("status-pdvs").innerText = "Carregando clientes da lista " + rota + "...";
+            document.getElementById("status-pdvs").innerText = "Carregando clientes da rota " + rota + "...";
 
             fetch(APPS_SCRIPT_URL, {
                 method: "POST",
@@ -267,7 +267,7 @@
                         option.text = pdv.nome; 
                         select.appendChild(option);
                     });
-                    document.getElementById("status-pdvs").innerText = "Lista de clientes carregada. Escolha da lista abaixo!";
+                    document.getElementById("status-pdvs").innerText = "Clientes carregados. Escolha na lista!";
                 }
             })
             .catch(erro => {
@@ -306,7 +306,7 @@
             const spanTitulo = document.getElementById(`label-titulo-cartela${cartelaNum}`);
             const valNum = Number(valor) || 0;
             spanTitulo.dataset.valor = valNum;
-            spanTitulo.innerText = `Cartela de ${valNum.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`;
+            spanTitulo.innerText = `Valor da cartela: ${valNum.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`;
         }
 
         function calcularCartela(cartelaNum) {
@@ -422,7 +422,7 @@
                         voltarParaPrincipal();
                     }, 2000);
                 } else {
-                    msg.innerText = "Erro no servidor: " + (dados.mensagem || "desconhecido");
+                    msg.innerText = "Erro: " + (dados.mensagem || "Desconhecido");
                     msg.style.color = "red";
                     btn.innerText = "Registrar Acerto";
                     btn.disabled = false;
