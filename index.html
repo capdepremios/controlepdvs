@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel do Motoboy</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f4f4f9; margin: 0; padding: 20px; }
+        .container { max-width: 420px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        input, button, select { width: 100%; padding: 10px; margin: 8px 0; box-sizing: border-box; border-radius: 4px; font-size: 16px; }
+        button { background-color: #28a745; color: white; border: none; font-weight: bold; cursor: pointer; }
+        
+        .btn-azul { background-color: #007bff; }
+        .btn-vermelho { background-color: #dc3545; }
+        .btn-cinza { background-color: #6c757d; }
+        .btn-amarelo { background-color: #ffc107; color: black; }
+        
+        .hidden { display: none; }
+        
+        /* Layout em 3 colunas compactas para Cartela (Distribuído / Venda / Devolução) */
+        .grid-cartela { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 2px; }
+        .col-cartela { text-align: center; }
+        .col-cartela label { font-size: 11px; font-weight: bold; color: #555; display: block; margin-bottom: 2px; }
+        .col-cartela input { margin: 0; text-align: center; font-size: 15px; padding: 8px 4px; }
+
+        .aviso-limite { font-size: 11px; color: #dc3545; margin: 0 0 8px 0; min-height: 14px; font-weight: bold; }
+        
+        /* Estilo para o título do valor da cartela no lugar de "Cartela X" */
+        .label-titulo-cartela { font-size: 14px; font-weight: bold; color: #333; margin-top: 16px; margin-bottom: 4px; display: block; }
+
+        label { font-size: 14px; font-weight: bold; color: #333; display: block; margin-top: 12px; }
+        
+        /* Campos automáticos ou bloqueados */
+        input[readonly] { background-color: #e9ecef; color: #495057; font-weight: bold; border: 1px solid #ccc; }
+        
+        hr { border: 0; border-top: 1px solid #ddd; margin: 20px 0 10px 0; }
+    </style>
+</head>
+<body>
+
+    <!-- 1. TELA DE LOGIN -->
+    <div id="tela-login" class="container">
+        <h2>Acesso - Motoboy</h2>
+        <input type="text" id="login" placeholder="Digite seu usuário">
+        <input type="password" id="senha" placeholder="Senha ou PIN">
+        <button onclick="fazerLogin()">Entrar</button>
+        <p id="msg-erro" style="color: red; text-align: center;"></p>
+    </div>
+
+    <!-- 2. TELA PRINCIPAL (Hub) -->
+    <div id="tela-principal" class="container hidden">
+        <h2 id="boas-vindas">Bem-vindo</h2>
+        <p>Rota atual: <strong id="rota-atual"></strong></p>
+        
+        <button onclick="abrirAcerto()">Novo Acerto</button>
+        <button class="btn-azul" onclick="abrirMenuPontos()">Meus Pontos</button>
+        <button class="btn-vermelho" onclick="sair()" style="margin-top: 30px;">Sair</button>
+    </div>
+
+    <!-- 3. TELA DE MENU: MEUS PONTOS -->
+    <div id="tela-meus-pontos" class="container hidden">
+        <h2>Meus Pontos</h2>
+        <p>Escolha uma opção:</p>
+        
+        <button onclick="abrirCadastrarPDV()">Cadastrar novo PDV</button>
+        <button class="btn-amarelo" onclick="abrirConsultarPDV()">Consultar dados de PDV</button>
+        <button class="btn-azul" onclick="abrirAbastecerPDV()">Abastecer PDV</button>
+        
+        <button class="btn-cinza" onclick="voltarParaPrincipal()" style="margin-top: 30px;">Voltar</button>
+    </div>
+
+    <!-- 4. TELA DE NOVO ACERTO -->
+    <div id="tela-acerto" class="container hidden">
+        <h2>Lançar Acerto</h2>
+        <p id="status-pdvs" style="font-size: 12px; color: #007bff;">Carregando seus clientes...</p>
+        
+        <label for="pdv-selecionado">Selecione o PDV:</label>
+        <select id="pdv-selecionado" onchange="aoSelecionarPDV()">
+            <option value="">Selecione um cliente...</option>
+        </select>
+
+        <!-- CARTELA 1 -->
+        <span class="label-titulo-cartela" id="label-titulo-cartela1">Cartela de R$ 0,00</span>
+        <div class="grid-cartela">
+            <div class="col-cartela">
+                <label>Distribuído</label>
+                <input type="number" id="dist1" readonly value="0">
+            </div>
+            <div class="col-cartela">
+                <label>Venda</label>
+                <input type="number" id="venda1" min="0" step="1" placeholder="0" oninput="calcularCartela(1)">
+            </div>
+            <div class="col-cartela">
+                <label>Devolução</label>
+                <input type="number" id="dev1" readonly value="0">
+            </div>
+        </div>
+        <p id="aviso1" class="aviso-limite"></p>
+
+        <!-- CARTELA 2 -->
+        <span class="label-titulo-cartela" id="label-titulo-cartela2">Cartela de R$ 0,00</span>
+        <div class="grid-cartela">
+            <div class="col-cartela">
+                <label>Distribuído</label>
+                <input type="number" id="dist2" readonly value="0">
+            </div>
+            <div class="col-cartela">
+                <label>Venda</label>
+                <input type="number" id="venda2" min="0" step="1" placeholder="0" oninput="calcularCartela(2)">
+            </div>
+            <div class="col-cartela">
+                <label>Devolução</label>
+                <input type="number" id="dev2" readonly value="0">
+            </div>
+        </div>
+        <p id="aviso2" class="aviso-limite"></p>
+
+        <!-- CARTELA 3 -->
+        <span class="label-titulo-cartela" id="label-titulo-cartela3">Cartela de R$ 0,00</span>
+        <div class="grid-cartela">
+            <div class="col-cartela">
+                <label>Distribuído</label>
+                <input type="number" id="dist3" readonly value="0">
+            </div>
+            <div class="col-cartela">
+                <label>Venda</label>
+                <input type="number" id="venda3" min="0" step="1" placeholder="0" oninput="calcularCartela(3)">
+            </div>
+            <div class="col-cartela">
+                <label>Devolução</label>
+                <input type="number" id="dev3" readonly value="0">
+            </div>
+        </div>
+        <p id="aviso3" class="aviso-limite"></p>
+
+        <hr>
+        <h3 style="margin-bottom: 0;">Totais e Fechamento</h3>
+
+        <label for="venda-total">Venda Total (R$):</label>
+        <input type="text" id="venda-total" placeholder="R$ 0,00" readonly>
+        
+        <label for="comissao">Comissão (10%):</label>
+        <input type="text" id="comissao" placeholder="R$ 0,00" readonly>
+        
+        <label for="a-receber">Valor a Receber (R$):</label>
+        <input type="text" id="a-receber" placeholder="R$ 0,00" readonly>
+        
+        <label for="dev-total">Devolução Total (Qtd):</label>
+        <input type="number" id="dev-total" placeholder="0" readonly>
+
+        <button onclick="salvarAcerto()" id="btn-salvar-acerto" style="margin-top: 15px;">Registrar Acerto</button>
+        <button class="btn-cinza" onclick="voltarParaPrincipal()">Cancelar</button>
+        <p id="msg-acerto" style="text-align: center; font-weight: bold;"></p>
+    </div>
+
+    <script>
+        const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxL4AdsHa8KJPH9g5Jt4e5bCeKbqyoLXQmT5Nz5eaenrCIA9KK2_7vVSRajTAEuHPiIsQ/exec";
+        
+        let listaGlobalPDVs = [];
+
+        window.onload = function() {
+            const motoboySalvo = localStorage.getItem("motoboyNome");
+            const rotaSalva = localStorage.getItem("motoboyRota");
+            if (motoboySalvo && rotaSalva) {
+                mostrarTelaPrincipal(motoboySalvo, rotaSalva);
+            }
+        };
+
+        function fazerLogin() {
+            const login = document.getElementById("login").value;
+            const senha = document.getElementById("senha").value;
+            document.getElementById("msg-erro").innerText = "Verificando...";
+
+            fetch(APPS_SCRIPT_URL, {
+                method: "POST",
+                body: JSON.stringify({ action: "login", login: login, senha: senha })
+            })
+            .then(res => res.json())
+            .then(dados => {
+                if (dados.status === "sucesso") {
+                    localStorage.setItem("motoboyNome", dados.nome);
+                    localStorage.setItem("motoboyRota", dados.rota);
+                    mostrarTelaPrincipal(dados.nome, dados.rota);
+                } else {
+                    document.getElementById("msg-erro").innerText = dados.mensagem;
+                }
+            })
+            .catch(erro => { document.getElementById("msg-erro").innerText = "Erro ao conectar."; });
+        }
+
+        function sair() {
+            localStorage.clear();
+            location.reload();
+        }
+
+        function ocultarTodasAsTelas() {
+            document.getElementById("tela-login").classList.add("hidden");
+            document.getElementById("tela-principal").classList.add("hidden");
+            document.getElementById("tela-meus-pontos").classList.add("hidden");
+            document.getElementById("tela-acerto").classList.add("hidden");
+        }
+
+        function mostrarTelaPrincipal(nome, rota) {
+            ocultarTodasAsTelas();
+            document.getElementById("tela-principal").classList.remove("hidden");
+            if(nome) document.getElementById("boas-vindas").innerText = "Bem-vindo, " + nome;
+            if(rota) document.getElementById("rota-atual").innerText = rota;
+        }
+
+        function voltarParaPrincipal() { mostrarTelaPrincipal(); }
+        function abrirMenuPontos() {
+            ocultarTodasAsTelas();
+            document.getElementById("tela-meus-pontos").classList.remove("hidden");
+        }
+
+        // ==========================================
+        // FLUXO DO ACERTO
+        // ==========================================
+        function abrirAcerto() {
+            ocultarTodasAsTelas();
+            document.getElementById("tela-acerto").classList.remove("hidden");
+            document.getElementById("msg-acerto").innerText = "";
+            limparFormularioAcerto();
+            carregarPDVs();
+        }
+
+        function limparFormularioAcerto() {
+            document.getElementById("pdv-selecionado").value = "";
+            
+            for(let i=1; i<=3; i++) {
+                document.getElementById(`dist${i}`).value = 0;
+                document.getElementById(`venda${i}`).value = "";
+                document.getElementById(`dev${i}`).value = 0;
+                document.getElementById(`aviso${i}`).innerText = "";
+                
+                const spanTitulo = document.getElementById(`label-titulo-cartela${i}`);
+                spanTitulo.innerText = "Cartela de R$ 0,00";
+                spanTitulo.dataset.valor = 0;
+            }
+
+            document.getElementById("venda-total").value = "";
+            document.getElementById("comissao").value = "";
+            document.getElementById("a-receber").value = "";
+            document.getElementById("dev-total").value = 0;
+        }
+
+        function carregarPDVs() {
+            const rota = localStorage.getItem("motoboyRota");
+            document.getElementById("status-pdvs").innerText = "Carregando clientes da lista " + rota + "...";
+
+            fetch(APPS_SCRIPT_URL, {
+                method: "POST",
+                body: JSON.stringify({ action: "buscar_pdvs", rota: rota })
+            })
+            .then(res => res.json())
+            .then(dados => {
+                if (dados.status === "sucesso") {
+                    listaGlobalPDVs = dados.pdvs;
+                    const select = document.getElementById("pdv-selecionado");
+                    select.innerHTML = '<option value="">Selecione um cliente...</option>'; 
+                    
+                    listaGlobalPDVs.sort((a, b) => a.nome.localeCompare(b.nome));
+                    
+                    listaGlobalPDVs.forEach(pdv => {
+                        let option = document.createElement("option");
+                        option.value = pdv.nome;
+                        option.text = pdv.nome; 
+                        select.appendChild(option);
+                    });
+                    document.getElementById("status-pdvs").innerText = "Lista de clientes carregada. Escolha da lista abaixo!";
+                }
+            })
+            .catch(erro => {
+                document.getElementById("status-pdvs").innerText = "Erro ao carregar clientes. Tente novamente.";
+            });
+        }
+
+        function aoSelecionarPDV() {
+            const nomePdv = document.getElementById("pdv-selecionado").value;
+            const pdvEncontrado = listaGlobalPDVs.find(p => p.nome === nomePdv);
+
+            if (pdvEncontrado) {
+                // Quantidades
+                document.getElementById("dist1").value = pdvEncontrado.quant1;
+                document.getElementById("dist2").value = pdvEncontrado.quant2;
+                document.getElementById("dist3").value = pdvEncontrado.quant3;
+
+                // Valores unitários nos títulos das cartelas
+                setarValorUnitario(1, pdvEncontrado.valor1);
+                setarValorUnitario(2, pdvEncontrado.valor2);
+                setarValorUnitario(3, pdvEncontrado.valor3);
+            } else {
+                for(let i=1; i<=3; i++) {
+                    document.getElementById(`dist${i}`).value = 0;
+                    setarValorUnitario(i, 0);
+                }
+            }
+
+            for(let i=1; i<=3; i++) {
+                document.getElementById(`aviso${i}`).innerText = "";
+                calcularCartela(i);
+            }
+        }
+
+        function setarValorUnitario(cartelaNum, valor) {
+            const spanTitulo = document.getElementById(`label-titulo-cartela${cartelaNum}`);
+            const valNum = Number(valor) || 0;
+            spanTitulo.dataset.valor = valNum;
+            spanTitulo.innerText = `Cartela de ${valNum.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`;
+        }
+
+        function calcularCartela(cartelaNum) {
+            const inputVenda = document.getElementById(`venda${cartelaNum}`);
+            const campoAviso = document.getElementById(`aviso${cartelaNum}`);
+            const dist = Number(document.getElementById(`dist${cartelaNum}`).value) || 0;
+            let valVenda = inputVenda.value;
+
+            if (valVenda !== "") {
+                valVenda = Math.max(0, Math.floor(Number(valVenda)));
+                
+                if (valVenda > dist) {
+                    valVenda = dist;
+                    inputVenda.value = valVenda;
+                    campoAviso.innerText = `A venda não pode ser maior que o distribuído (${dist}).`;
+                } else {
+                    campoAviso.innerText = "";
+                }
+            } else {
+                valVenda = 0;
+                campoAviso.innerText = "";
+            }
+
+            let dev = dist - valVenda;
+            if (dev < 0) dev = 0;
+
+            document.getElementById(`dev${cartelaNum}`).value = dev;
+            
+            atualizarTotaisGerais();
+        }
+
+        function atualizarTotaisGerais() {
+            const dev1 = Number(document.getElementById("dev1").value) || 0;
+            const dev2 = Number(document.getElementById("dev2").value) || 0;
+            const dev3 = Number(document.getElementById("dev3").value) || 0;
+            document.getElementById("dev-total").value = dev1 + dev2 + dev3;
+
+            const v1 = Number(document.getElementById("venda1").value) || 0;
+            const preco1 = Number(document.getElementById("label-titulo-cartela1").dataset.valor) || 0;
+
+            const v2 = Number(document.getElementById("venda2").value) || 0;
+            const preco2 = Number(document.getElementById("label-titulo-cartela2").dataset.valor) || 0;
+
+            const v3 = Number(document.getElementById("venda3").value) || 0;
+            const preco3 = Number(document.getElementById("label-titulo-cartela3").dataset.valor) || 0;
+
+            const totalVendaReais = (v1 * preco1) + (v2 * preco2) + (v3 * preco3);
+
+            if (totalVendaReais > 0) {
+                document.getElementById('venda-total').value = totalVendaReais.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+                let comissao = totalVendaReais * 0.10;
+                let aReceber = totalVendaReais - comissao;
+
+                document.getElementById('comissao').value = comissao.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+                document.getElementById('a-receber').value = aReceber.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+            } else {
+                document.getElementById('venda-total').value = "";
+                document.getElementById('comissao').value = "";
+                document.getElementById('a-receber').value = "";
+            }
+        }
+
+        function desformatarMoeda(valorFormatado) {
+            if (!valorFormatado) return 0;
+            let apenasNumeros = valorFormatado.replace(/\D/g, '');
+            return parseInt(apenasNumeros, 10) / 100;
+        }
+
+        function salvarAcerto() {
+            const btn = document.getElementById("btn-salvar-acerto");
+            const msg = document.getElementById("msg-acerto");
+            
+            const pdv = document.getElementById("pdv-selecionado").value;
+            if(!pdv) {
+                msg.innerText = "Por favor, selecione um PDV na lista.";
+                msg.style.color = "red";
+                return;
+            }
+
+            btn.innerText = "Enviando...";
+            btn.disabled = true;
+
+            const dadosAcerto = {
+                action: "lancar_movimento",
+                motoboy: localStorage.getItem("motoboyNome"),
+                pdv: pdv,
+                venda1: document.getElementById("venda1").value || 0,
+                devolucao1: document.getElementById("dev1").value || 0,
+                venda2: document.getElementById("venda2").value || 0,
+                devolucao2: document.getElementById("dev2").value || 0,
+                venda3: document.getElementById("venda3").value || 0,
+                devolucao3: document.getElementById("dev3").value || 0,
+                vendaTotal: desformatarMoeda(document.getElementById("venda-total").value),
+                comissao: desformatarMoeda(document.getElementById("comissao").value),
+                aReceber: desformatarMoeda(document.getElementById("a-receber").value),
+                devolucaoTotal: document.getElementById("dev-total").value || 0
+            };
+
+            fetch(APPS_SCRIPT_URL, {
+                method: "POST",
+                body: JSON.stringify(dadosAcerto)
+            })
+            .then(res => res.json())
+            .then(dados => {
+                if (dados.status === "sucesso") {
+                    msg.innerText = "Acerto registrado com sucesso!";
+                    msg.style.color = "green";
+                    setTimeout(() => {
+                        limparFormularioAcerto();
+                        btn.innerText = "Registrar Acerto";
+                        btn.disabled = false;
+                        voltarParaPrincipal();
+                    }, 2000);
+                } else {
+                    msg.innerText = "Erro no servidor: " + (dados.mensagem || "desconhecido");
+                    msg.style.color = "red";
+                    btn.innerText = "Registrar Acerto";
+                    btn.disabled = false;
+                }
+            })
+            .catch(erro => {
+                console.error("Erro detalhado:", erro);
+                msg.innerText = "Erro ao enviar. Verifique o console (F12).";
+                msg.style.color = "red";
+                btn.innerText = "Registrar Acerto";
+                btn.disabled = false;
+            });
+        }
+
+        function abrirCadastrarPDV() { alert("Em breve: Cadastrar novo PDV"); }
+        function abrirConsultarPDV() { alert("Em breve: Consultar dados de PDV"); }
+        function abrirAbastecerPDV() { alert("Em breve: Abastecer PDV (Registro de estoque)"); }
+    </script>
+</body>
+</html>
