@@ -249,6 +249,40 @@
         <p id="msg-cad-pdv" style="text-align: center; font-weight: bold;"></p>
     </div>
 
+
+<!-- 6. TELA DE CONSULTAR DADOS DE PDV -->
+    <div id="tela-consultar-pdv" class="container hidden">
+        <h2>Consultar PDV</h2>
+        <p style="font-size: 12px; color: #007bff;">Exibindo clientes da sua rota.</p>
+        
+        <label for="consulta-pdv-selecionado">Selecione o PDV:</label>
+        <select id="consulta-pdv-selecionado" onchange="preencherDadosConsultaPDV()">
+            <option value="">Carregando clientes...</option>
+        </select>
+
+        <div id="detalhes-pdv-consulta" class="hidden" style="margin-top: 15px;">
+            <hr>
+            <p><strong>Endereço:</strong> <span id="c-end">-</span></p>
+            <p><strong>Bairro:</strong> <span id="c-bairro">-</span></p>
+            <p><strong>Cidade:</strong> <span id="c-cidade">-</span></p>
+            <p><strong>Telefone:</strong> <span id="c-tel">-</span></p>
+            <p><strong>Responsável:</strong> <span id="c-resp">-</span></p>
+            <p><strong>Recolha:</strong> <span id="c-dia">-</span> às <span id="c-hora">-</span></p>
+
+            <div style="margin-top: 15px; display: flex; flex-direction: column; gap: 8px;">
+                <button class="btn-azul hidden" id="btn-abrir-mapa" onclick="abrirGoogleMaps()">🗺️ Abrir Localização (Maps)</button>
+                <button class="btn-amarelo hidden" id="btn-abrir-foto" onclick="abrirFotoFachada()">📷 Ver Foto da Fachada</button>
+            </div>
+        </div>
+
+        <button class="btn-cinza" onclick="abrirMenuPontos()" style="margin-top: 25px;">Voltar</button>
+    </div>
+
+
+
+
+
+
     <script>
         const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzsuU1NC3MlEHl08b1-YyuLbxAj418zRtEQsHZe_YBWAWv3FV8BT7YUw1b9jVeiveBU7g/exec";
         
