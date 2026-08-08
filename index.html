@@ -718,7 +718,124 @@
             });
         }
 
-        function abrirConsultarPDV() { alert("Em breve: Consultar dados de PDV"); }
+        function ocultarTodasAsTelas() {
+            document.getElementById("tela-login").classList.add("hidden");
+            document.getElementById("tela-principal").classList.add("hidden");
+            document.getElementById("tela-meus-pontos").classList.add("hidden");
+            document.getElementById("tela-acerto").classList.add("hidden");
+            document.getElementById("tela-cadastro-pdv").classList.add("hidden");
+            document.getElementById("tela-consultar-pdv").classList.add("hidden"); // Garante que a tela de consulta oculta
+        }
+
+        let linkMapaAtual = "";
+        let linkFotoAtual = "";
+
+        function abrirConsultarPDV() {
+            ocultarTodasAsTelas();
+            document.getElementById("tela-consultar-pdv").classList.remove("hidden");
+            document.getElementById("detalhes-pdv-consulta").classList.add("hidden");
+            
+            if (listaGlobalPDVs.length === 0) {
+                carregarPDVsParaConsulta();
+            } else {
+                popularSelectConsulta(listaGlobalPDVs);
+            }
+        }
+
+        function carregarPDVsParaConsulta() {
+            const rota = localStorage.getItem("motoboyRota");
+            const select = document.getElementById("consulta-pdv-selecionado");
+            select.innerHTML = '<option value="">Carregando...</option>';
+
+            fetch(APPS_SCRIPT_URL, {
+                method: "POST",
+                body: JSON.stringify({ action: "buscar_pdvs", rota: rota })
+            })
+            .then(res => res.json())
+            .then(dados => {
+                if (dados.status === "sucesso") {
+                    listaGlobalPDVs = dados.pdvs;
+                    popularSelectConsulta(listaGlobalPDVs);
+                } else {
+                    select.innerHTML = '<option value="">Erro ao carregar clientes</option>';
+                }
+            })
+            .catch(erro => {
+                select.innerHTML = '<option value="">Erro de conexão</option>';
+            });
+        }
+
+        function popularSelectConsulta(pdvs) {
+            const select = document.getElementById("consulta-pdv-selecionado");
+            select.innerHTML = '<option value="">Selecione um cliente...</option>';
+            
+            pdvs.sort((a, b) => a.nome.localeCompare(b.nome));
+            
+            pdvs.forEach(pdv => {
+                let option = document.createElement("option");
+                option.value = pdv.nome;
+                option.text = pdv.nome;
+                select.appendChild(option);
+            });
+        }
+
+        function preencherDadosConsultaPDV() {
+            const nomePdv = document.getElementById("consulta-pdv-selecionado").value;
+            const containerDetalhes = document.getElementById("detalhes-pdv-consulta");
+            
+            if (!nomePdv) {
+                containerDetalhes.classList.add("hidden");
+                return;
+            }
+
+            const pdv = listaGlobalPDVs.find(p => p.nome === nomePdv);
+            if (pdv) {
+                document.getElementById("c-end").innerText = pdv.endereco || "Não informado";
+                document.getElementById("c-bairro").innerText = pdv.bairro || "Não informado";
+                document.getElementById("c-cidade").innerText = pdv.cidade || "Não informada";
+                document.getElementById("c-tel").innerText = pdv.telefone || "Não informado";
+                document.getElementById("c-resp").innerText = pdv.responsavel || "Não informado";
+                document.getElementById("c-dia").innerText = pdv.diaRecolha || "-";
+                document.getElementById("c-hora").innerText = pdv.horaRecolha || "-";
+
+                // Gerenciar link do Mapa
+                linkMapaAtual = pdv.localizacao || "";
+                const btnMapa = document.getElementById("btn-abrir-mapa");
+                if (linkMapaAtual) {
+                    btnMapa.classList.remove("hidden");
+                } else {
+                    btnMapa.classList.add("hidden");
+                }
+
+                // Gerenciar link da Foto
+                linkFotoAtual = pdv.foto || "";
+                const btnFoto = document.getElementById("btn-abrir-foto");
+                if (linkFotoAtual && linkFotoAtual.startsWith("http")) {
+                    btnFoto.classList.remove("hidden");
+                } else {
+                    btnFoto.classList.add("hidden");
+                }
+
+                containerDetalhes.classList.remove("hidden");
+            }
+        }
+
+        function abrirGoogleMaps() {
+            if (linkMapaAtual) {
+                window.open(linkMapaAtual, '_blank');
+            } else {
+                alert("Nenhum link de localização cadastrado para este PDV.");
+            }
+        }
+
+        function abrirFotoFachada() {
+            if (linkFotoAtual) {
+                window.open(linkFotoAtual, '_blank');
+            } else {
+                alert("Nenhuma foto cadastrada para este PDV.");
+            }
+        }
+
         function abrirAbastecerPDV() { alert("Em breve: Abastecer PDV (Registro de estoque)"); }
     </script>
 </body>
