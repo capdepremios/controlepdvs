@@ -88,22 +88,26 @@
     <script>
         const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzsuU1NC3MlEHl08b1-YyuLbxAj418zRtEQsHZe_YBWAWv3FV8BT7YUw1b9jVeiveBU7g/exec";
 
-        window.onload = function() {
+       window.onload = function() {
             const nome = localStorage.getItem("motoboyNome");
             const perfil = localStorage.getItem("motoboyPerfil");
             
+            // Verifica rigorosamente se o usuário está logado e se o perfil é estritamente admin
             if (!nome || perfil !== "admin") {
-                alert("Acesso restrito ou sessão expirada.");
-                window.location.href = "./index.html"; 
+                // Limpa qualquer dado residual por segurança
+                localStorage.clear();
+                alert("Acesso restrito. Faça login com uma conta de administrador.");
+                // Redireciona imediatamente para a raiz ou tela de login
+                window.location.replace("./index.html"); 
                 return;
             }
 
             document.getElementById("admin-nome").innerText = nome;
-            carregarDashboard(true); // Carrega com o aviso inicial
+            carregarDashboard(true); 
 
             // Atualiza automaticamente a cada 5 minutos (300000 milissegundos)
             setInterval(function() {
-                carregarDashboard(false); // Atualiza em segundo plano de forma silenciosa
+                carregarDashboard(false); 
             }, 300000);
         };
 
