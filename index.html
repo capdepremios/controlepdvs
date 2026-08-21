@@ -146,7 +146,9 @@
         <label for="dev-total">Devolução Total (Qtd):</label>
         <input type="number" id="dev-total" placeholder="0" readonly>
 
-        <button onclick="salvarAcerto()" id="btn-salvar-acerto" style="margin-top: 15px;">Registrar Acerto</button>
+       <button onclick="salvarAcerto()" id="btn-salvar-acerto" style="margin-top: 15px;">Registrar Acerto</button>
+        <button class="btn-amarelo hidden" id="btn-ponto-fechado" onclick="registrarOcorrênciaDireta('Ponto Fechado')" style="margin-top: 8px;">⚠️ Informar Ponto Fechado</button>
+        <button class="btn-vermelho hidden" id="btn-desistiu" onclick="registrarOcorrênciaDireta('Desistiu de Vender')" style="margin-top: 8px;">❌ Desistiu de Vender (Fazer Acerto)</button>
         <button class="btn-azul hidden" id="btn-novo-acerto" onclick="prepararNovoAcerto()" style="margin-top: 15px;">Fazer Novo Acerto</button>
         <button class="btn-cinza" onclick="voltarParaPrincipal()">Voltar ao Menu</button>
         <p id="msg-acerto" style="text-align: center; font-weight: bold;"></p>
@@ -457,9 +459,12 @@
             });
         }
 
-        function aoSelecionarPDV() {
+      function aoSelecionarPDV() {
             const nomePdv = document.getElementById("pdv-selecionado").value;
             const pdvEncontrado = listaGlobalPDVs.find(p => p.nome === nomePdv);
+
+            const btnFechado = document.getElementById("btn-ponto-fechado");
+            const btnDesistiu = document.getElementById("btn-desistiu");
 
             if (pdvEncontrado) {
                 document.getElementById("dist1").value = pdvEncontrado.quant1;
@@ -469,11 +474,16 @@
                 setarValorUnitario(1, pdvEncontrado.valor1);
                 setarValorUnitario(2, pdvEncontrado.valor2);
                 setarValorUnitario(3, pdvEncontrado.valor3);
+
+                btnFechado.classList.remove("hidden");
+                btnDesistiu.classList.remove("hidden");
             } else {
                 for(let i=1; i<=3; i++) {
                     document.getElementById(`dist${i}`).value = 0;
                     setarValorUnitario(i, 0);
                 }
+                btnFechado.classList.add("hidden");
+                btnDesistiu.classList.add("hidden");
             }
 
             for(let i=1; i<=3; i++) {
@@ -556,6 +566,33 @@
             return parseInt(apenasNumeros, 10) / 100;
         }
 
+function atualizarSelectPDVsRestantes(pdvRemovido) {
+            // Remove da lista global
+            listaGlobalPDVs = listaGlobalPDVs.filter(p => p.nome !== pdvRemovido);
+            
+            const select = document.getElementById("pdv-selecionado");
+            select.innerHTML = '<option value="">Selecione um cliente...</option>'; 
+            
+            listaGlobalPDVs.sort((a, b) => a.nome.localeCompare(b.nome));
+            
+            listaGlobalPDVs.forEach(pdv => {
+                let option = document.createElement("option");
+                option.value = pdv.nome;
+                option.text = pdv.nome; 
+                select.appendChild(option);
+            });
+
+            if (listaGlobalPDVs.length === 0) {
+                document.getElementById("status-pdvs").innerText = "Parabéns! Todos os pontos desta rota foram processados.";
+            } else {
+                document.getElementById("status-pdvs").innerText = `Restam ${listaGlobalPDVs.length} clientes pendentes.`;
+            }
+
+            // Oculta os botões de ação e limpa formulário
+            document.getElementById("btn-ponto-fechado").classList.add("hidden");
+            document.getElementById("btn-desistiu").classList.add("hidden");
+        }
+
         function salvarAcerto() {
             const btn = document.getElementById("btn-salvar-acerto");
             const btnNovo = document.getElementById("btn-novo-acerto");
@@ -597,6 +634,8 @@
                     msg.innerText = "Acerto registrado com sucesso!";
                     msg.style.color = "green";
                     
+                    atualizarSelectPDVsRestantes(pdv);
+
                     btn.classList.add("hidden");
                     btn.innerText = "Registrar Acerto";
                     btn.disabled = false;
@@ -615,6 +654,52 @@
                 btn.innerText = "Registrar Acerto";
                 btn.disabled = false;
             });
+        }
+
+        function registrarOcorrênciaDireta(tipoOcorrencia) {
+            const pdv = document.getElementById("pdv-selecionado").value;
+            if (!pdv) {
+                alert("Selecione um PDV primeiro.");
+                return;
+            }
+
+            if (confirm(`Confirma o registro de ocorrência (${tipoOcorrencia}) para o PDV "${pdv}"?`)) {
+                const msg = document.getElementById("msg-acerto");
+                msg.innerText = "Registrando ocorrência...";
+                msg.style.color = "#007bff";
+
+                fetch(APPS_SCRIPT_URL, {
+                    method: "POST",
+                    body: JSON.stringify({
+                        action: "registrar_ocorrencia",
+                        motoboy: localStorage.getItem("motoboyNome"),
+                        pdv: pdv,
+                        tipoOcorrencia: tipoOcorrencia
+                    })
+                })
+                .then(res => res.json())
+                .then(dados => {
+                    if (dados.status === "sucesso") {
+                        if (tipoOcorrencia === "Desistiu de Vender") {
+                            alert("Ocorrência registrada! Agora faça o acerto das cartelas físicas que estavam no local para zerar o estoque.");
+                            msg.innerText = "Preencha o acerto final das cartelas.";
+                            msg.style.color = "orange";
+                        } else {
+                            msg.innerText = "Ponto fechado registrado. Removido da lista.";
+                            msg.style.color = "orange";
+                            atualizarSelectPDVsRestantes(pdv);
+                            limparFormularioAcerto();
+                        }
+                    } else {
+                        msg.innerText = "Erro ao registrar ocorrência.";
+                        msg.style.color = "red";
+                    }
+                })
+                .catch(() => {
+                    msg.innerText = "Erro de conexão.";
+                    msg.style.color = "red";
+                });
+            }
         }
 
         // ==========================================
