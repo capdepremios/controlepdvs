@@ -354,7 +354,13 @@
                 if (dados.status === "sucesso") {
                     localStorage.setItem("motoboyNome", dados.nome);
                     localStorage.setItem("motoboyRota", dados.rota);
-                    mostrarTelaPrincipal(dados.nome, dados.rota);
+                    localStorage.setItem("motoboyPerfil", dados.perfil);
+
+                    if (dados.perfil === "admin") {
+                        carregarPainelAdmin(dados.nome);
+                    } else {
+                        mostrarTelaPrincipal(dados.nome, dados.rota);
+                    }
                 } else {
                     document.getElementById("msg-erro").innerText = dados.mensagem;
                 }
